@@ -1,10 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'colors.dart';
+import 'functions.dart';
 
 class addOrder extends StatefulWidget {
   final deviceWidth;
-  const addOrder({super.key, required this.deviceWidth});
+  final orderNo;
+  const addOrder({super.key, required this.deviceWidth, required this.orderNo});
 
   @override
   State<addOrder> createState() => _addOrderState();
@@ -26,6 +29,13 @@ class _addOrderState extends State<addOrder> {
   String? selectedPaymentOption;
   final List<String> status = ['Completed', 'To Deliver', 'Canceled'];
   String? selectedStatusOption;
+
+  int sOrders = 0;
+  int sSales = 0;
+  int sProfit = 0;
+  int sCost = 0;
+  int sMonthlySales = 0;
+  int sRemaining = 0;
 
   Future<void> _selectDateTime(BuildContext context) async {
     // Step 1: Select a Date
@@ -62,7 +72,69 @@ class _addOrderState extends State<addOrder> {
     }
   }
 
-  void addOrder() {}
+  Future<void> addOrder() async {
+    WriteBatch batch = FirebaseFirestore.instance.batch();
+    DocumentReference statisticsData =
+        FirebaseFirestore.instance.collection('appData').doc('live_statistics');
+    DocumentReference ordersData = FirebaseFirestore.instance
+        .collection('/appData/orders/orders_data')
+        .doc();
+
+    Map<String, dynamic> tempData =
+        await calculateStatistics(int.parse(price.text), int.parse(cost.text));
+
+    Map<String, dynamic> data = {
+      'title': title.text,
+      'name': name.text,
+      'address': address.text,
+      'contact': contact.text,
+      'note': note.text,
+      'description': description.text,
+      'date': date.text,
+      'price': price.text,
+      'quantity': quantity.text,
+      'payment': selectedPaymentOption,
+      'remaining': remaining.text,
+      'status': selectedStatusOption,
+      'cost': cost.text,
+      'orderNo': tempData['orders'],
+      'timeStamp': DateTime.timestamp(),
+    };
+
+    Map<String, int> data2 = {
+      'orders': tempData['orders'],
+      'sales': tempData['sales'],
+      'profit': tempData['profit'],
+      // 'monthly_sale': tempData['monthly_sale'],
+      'cost': tempData['cost'],
+      // 'remaining': tempData['remaining'],
+    };
+
+    // print(tempData);
+
+    batch.update(statisticsData, data2);
+    batch.set(ordersData, data);
+    try {
+      // Commit the batch
+      await batch.commit();
+      print("Batch update successful!");
+    } catch (e) {
+      print("Error during batch update: $e");
+    }
+    // try {
+
+    // // Add a new document with auto-generated ID
+    // await FirebaseFirestore.instance
+    //     .collection('/appData/orders/orders_data')
+    //     .add(data);
+    //
+    // print("Document added successfully!");
+    // Navigator.pop(context);
+    // } catch (e) {
+    //   print("Error adding document: $e");
+    // }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -287,7 +359,7 @@ class _addOrderState extends State<addOrder> {
                           labelText: 'Order Description',
                           labelStyle: const TextStyle(color: textBoxColorText),
                           contentPadding:
-                              const EdgeInsets.only(left: 10, top: 10),
+                              const EdgeInsets.only(left: 10, top: 15),
                         ),
                       ),
                     ),
@@ -327,7 +399,7 @@ class _addOrderState extends State<addOrder> {
                           labelText: 'Customer Note',
                           labelStyle: const TextStyle(color: textBoxColorText),
                           contentPadding:
-                              const EdgeInsets.only(left: 10, top: 10),
+                              const EdgeInsets.only(left: 10, top: 15),
                         ),
                       ),
                     ),
