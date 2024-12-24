@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "87939603137",
+    "project_id": "inanceapp",
+    "storage_bucket": "inanceapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:87939603137:android:4e6605d1cf2312aba35240",
+        "android_client_info": {
+          "package_name": "com.example.finance_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7Ts-wrU2m9H_rKeHF1JmPoIqeIUvvMc4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

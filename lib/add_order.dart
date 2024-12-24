@@ -27,7 +27,7 @@ class _addOrderState extends State<addOrder> {
   final TextEditingController date = TextEditingController();
   final List<String> payment = ['Paid', 'Unpaid', 'Advance'];
   String? selectedPaymentOption;
-  final List<String> status = ['Completed', 'To Deliver', 'Canceled'];
+  final List<String> status = ['Delivered', 'To Deliver', 'Canceled'];
   String? selectedStatusOption;
 
   int sOrders = 0;
@@ -99,6 +99,7 @@ class _addOrderState extends State<addOrder> {
       'cost': cost.text,
       'orderNo': tempData['orders'],
       'timeStamp': DateTime.timestamp(),
+      'isExpense': false,
     };
 
     Map<String, int> data2 = {
@@ -107,6 +108,7 @@ class _addOrderState extends State<addOrder> {
       'profit': tempData['profit'],
       // 'monthly_sale': tempData['monthly_sale'],
       'cost': tempData['cost'],
+      'balance': tempData['balance'],
       // 'remaining': tempData['remaining'],
     };
 
@@ -339,6 +341,7 @@ class _addOrderState extends State<addOrder> {
                         },
                         controller: description,
                         maxLines: 6,
+                        textInputAction: TextInputAction.done,
                         scrollPhysics: const AlwaysScrollableScrollPhysics(),
                         decoration: InputDecoration(
                           alignLabelWithHint: true,
@@ -378,6 +381,7 @@ class _addOrderState extends State<addOrder> {
                           FocusScope.of(context).unfocus();
                         },
                         maxLines: 6,
+                        textInputAction: TextInputAction.done,
                         scrollPhysics: const AlwaysScrollableScrollPhysics(),
                         controller: note,
                         decoration: InputDecoration(
@@ -698,6 +702,7 @@ class _addOrderState extends State<addOrder> {
                     GestureDetector(
                       onTap: () {
                         addOrder();
+                        Navigator.pop(context);
                       },
                       child: Container(
                         width: widget.deviceWidth * 0.8,

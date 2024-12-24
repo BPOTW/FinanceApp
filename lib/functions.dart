@@ -6,6 +6,8 @@ int sProfit = 0;
 int sCost = 0;
 int sMonthlySales = 0;
 int sRemaining = 0;
+int sBalance = 0;
+int sExpenses = 0;
 
 Future<void> getData() async {
   // Reference to the document
@@ -25,11 +27,31 @@ Future<void> getData() async {
       sCost = data['cost'];
       sMonthlySales = data['monthly_sale'];
       sRemaining = data['remaining'];
+      sBalance = data['balance'];
+      sExpenses = data['expenses'];
     } else {
       print("Document does not exist!");
     }
   } catch (e) {
     print("Error fetching document: $e");
+  }
+}
+
+Future<Map> getStatistics() async {
+  // Reference to the document
+  DocumentReference docRef =
+      FirebaseFirestore.instance.collection('appData').doc('live_statistics');
+
+  // Fetch the document once
+  DocumentSnapshot docSnapshot = await docRef.get();
+
+  if (docSnapshot.exists) {
+    // Access the document's data
+    Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
+    return data;
+  } else {
+    print("Document does not exist!");
+    return {};
   }
 }
 
@@ -69,7 +91,7 @@ Future<int> remainingCount() async {
   try {
     // Query documents where field matches the given value
     QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection('addData')
+        .collection('appData')
         .doc('orders')
         .collection('orders_data')
         .where('status', isEqualTo: 'To Deliver')
@@ -84,24 +106,61 @@ Future<int> remainingCount() async {
   }
 }
 
+Future<void> add_expense(int expense, String note) async {
+  await getData();
+  WriteBatch batch = FirebaseFirestore.instance.batch();
+  DocumentReference expenseData = FirebaseFirestore.instance
+      .collection('/appData/orders/orders_data')
+      .doc();
+  DocumentReference totalExpense =
+      FirebaseFirestore.instance.collection('/appData').doc('live_statistics');
+  batch.update(totalExpense, {
+    'expenses': sExpenses + expense,
+    'balance': sSales - (sExpenses + expense)
+  });
+  batch.set(expenseData, {
+    'expense': expense,
+    'isExpense': true,
+    'note': note,
+    'timeStamp': DateTime.timestamp(),
+  });
+  await batch.commit();
+
+  // await FirebaseFirestore.instance
+  //     .collection('/appData/orders/orders_data')
+  //     .add({
+  //   'expense': expense,
+  //   'isExpense': true,
+  //   'note': note,
+  //   'timeStamp': DateTime.timestamp(),
+  // });
+}
+
+Future<int> calculateBalance() async {
+  await getData();
+  int balance = sSales - sExpenses;
+  return balance;
+}
+
 Future<Map<String, dynamic>> calculateStatistics(int price, int cost) async {
   await getData();
-  sOrders = sOrders + 1;
-  sSales = sSales + price;
-  sProfit = sProfit + price - cost;
-  sCost = sCost + cost;
-  int temp = await monthlySalesCount();
-  sMonthlySales = sMonthlySales + temp;
-  int temp2 = await remainingCount();
-  sRemaining = sRemaining + temp2;
+  int Orders = sOrders + 1;
+  int Sales = sSales + price;
+  int Profit = sProfit + (price - cost);
+  int Cost = sCost + cost;
+  int Balance = sBalance + price;
+  // int temp = await monthlySalesCount();
+  // sMonthlySales = sMonthlySales + temp;
+  // int temp2 = await remainingCount();
+  // sRemaining = sRemaining + temp2;
   Map<String, dynamic> data = {
-    'orders': sOrders,
-    'sales': sSales,
-    'profit': sProfit,
-    'monthly_sale': sMonthlySales,
-    'cost': sCost,
-    'remaining': sRemaining,
+    'orders': Orders,
+    'sales': Sales,
+    'profit': Profit,
+    'balance': Balance,
+    // 'monthly_sale': sMonthlySales,
+    'cost': Cost,
+    // 'remaining': sRemaining,
   };
-  print(data);
   return data;
 }
